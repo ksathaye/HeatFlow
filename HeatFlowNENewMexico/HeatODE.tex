@@ -1,0 +1,125 @@
+\documentclass[a4paper,10pt]{article}
+
+
+\usepackage[dvips]{graphicx}
+\usepackage{amssymb,amsfonts,amsmath,color}
+\usepackage{array}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{amsmath}
+\usepackage{graphics}
+ %\usepackage{multirow}
+ %\usepackage{sidecap}
+%\usepackage[pdftex]{graphicx}
+%\input{psfig.sty}
+%\usepackage{wrapfig}
+\usepackage{color}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{graphicx}
+\usepackage{amssymb,color}
+\usepackage{amsmath}
+\usepackage{subfig}
+\usepackage{array}
+%\usepackage{sidecap}
+\usepackage{amsmath}
+\usepackage{wasysym}
+\usepackage{amssymb,amsmath}
+\usepackage{graphicx}
+\addtolength{\oddsidemargin}{-.9in}
+\addtolength{\evensidemargin}{-.9in}
+\addtolength{\textwidth}{1.5in}
+\addtolength{\topmargin}{-1.3in}
+%\addtolength{\bottommargin}{-1in}
+\addtolength{\textheight}{1.2in}
+\def\CO2{CO$_2$}
+\def\H2O{H$_2$O}
+\def\3He{$^3$He}
+\def\4He{$^4$He}
+\def\CH4{CH$_4$}
+\def\Kr{$^{84}$Kr}
+\def\CH4{CH$_4$}
+\def\RHe{$^3$He/$^4$He }
+\def\wUS{western United States}
+\def\degC{$^{\circ}$C }
+\def\AR{$^{36}$Ar}
+\def\Ar40{$^{40}$Ar}
+\def\COHe{CO$_2$/$^3$He } 
+\def\Ne{$^{20}$Ne}
+\def\NeB{$^{21}$Ne}
+\def\NeC{$^{22}$Ne}
+
+\pagestyle{empty}
+%opening
+
+\title{Calculation of Deep Geothermal Gradient}
+
+\author{Kiran Sathaye}
+
+\begin{document}
+
+\maketitle
+
+\noindent The script \texttt{ODEHeat.py} calculates the the geothermal gradient below northeastern New Mexico. The heat produced by radioactivity in the crust is equal to the measured surface heat flux minus the input from the mantle
+
+\begin{equation}
+q_c=q_s-q_m = 58\frac{\text{mW}}{\text{m}^2}-28\frac{\text{mW}}{\text{m}^2}=30\frac{\text{mW}}{\text{m}^2}
+\end{equation}
+
+\noindent The upper crust is known to be more radioactive and less dense than the lower  crust, so the fraction of upper felsic crust is computed by using a seismic density profile from the USArray seismic network
+
+\begin{equation}
+f(z)=\frac{\rho(z)-3000}{2700-3000}.
+\end{equation}
+
+\noindent The mass fractions of the radioactive elements Uranium, Thorium, and Potassium can then be computed with depth,
+
+\begin{eqnarray}
+\text{U}(z)=f(z)\text{U}_{u}+(1-f(z))\text{U}_{l} \quad  \text{where} \quad  \text{U}_{l}=0.2\text{ ppm} \\
+\text{Th}(z)=f(z)\text{Th}_{u}+(1-f(z))\text{Th}_{l} \quad  \text{where} \quad  \text{Th}_{l}=1.2\text{ ppm} \\
+\text{K$_2$O}(z)=f(z)\text{(K$_2$O)}_{u}+(1-f(z))\text{(K$_2$O)}_{l} \quad \text{where} \quad   \text{(K$_2$O)}_{l}=0.6\%.
+\end{eqnarray} 
+
+\noindent Each radioactive isotope decays with a distinct energy, given by $E_{i}$, and at a known rate, $\lambda_i$.
+
+\begin{eqnarray}
+E_{238U}=7.4\cdot 10^{-12} \text{ J} \quad \lambda_{238U}=\frac{ln(2)}{4.468\cdot 10^9 \text{yr}} \\
+E_{235U}=7.24\cdot 10^{-12} \text{ J} \quad \lambda_{235U}=\frac{ln(2)}{0.7038\cdot 10^9 \text{yr}} \\
+E_{232Th}=6.24\cdot 10^{-12} \text{ J}  \quad \lambda_{232Th}=\frac{ln(2)}{14.05\cdot 10^9 \text{yr}} \\
+E_{40K}=0.114\cdot 10^{-12} \text{ J}  \quad \lambda_{40K}=\frac{ln(2)}{1.248\cdot 10^9 \text{yr}}.
+\end{eqnarray}
+
+\noindent Combining the known total amount of heat production in the crust with the density profile gives the depth profile of radioactive elements and subsequent heat production with depth, 
+
+\begin{eqnarray}
+H_{238U}(z)=E_{238U}(6.022\cdot 10^{23})\lambda_{U238}\text{U(z)}\rho(z)/238 \quad  \text{W/m}^3\\
+H_{235U}(z)=E_{235U}(6.022\cdot 10^{23})\lambda_{U235}\text{U(z)}\rho(z)/(235\cdot 137.88)  \quad \text{W/m}^3\\
+H_{232Th}(z)=E_{232Th}(6.022\cdot 10^{23})\lambda_{Th232}\text{Th(z)}\rho(z)/232 \quad  \text{W/m}^3\\
+H_{40K}(z)=2(120\cdot 10^{-6})E_{40K}(6.022\cdot 10^{23})\lambda_{K}\text{K$_2$O}(z)\rho(z)/94 \quad  \text{W/m}^3
+\end{eqnarray}
+
+\noindent Thermal conductivity of the crust varies inversely with temperature, 
+
+\begin{eqnarray}
+k_{fels}(T)=1.64+\frac{807}{350+T(^{\circ}\text{C)}} \frac{W}{mK^{\circ}} \quad \text{and} \quad k_{maf}=2.18+\frac{474}{350+T(^{\circ}\text{C)}}  \frac{W}{mK^{\circ}}.
+\end{eqnarray}
+
+\noindent Because conductivity and temperature are co-dependent, and the heat flux and temperature are known at the surface, the temperature is solved for iteratively moving down into the crust, 
+\begin{equation}
+\frac{dq}{dz}=-H(z) 
+\end{equation}
+
+\begin{equation}
+k_s\Big(\frac{dT}{dz}\Big)_{s}=-q_s.
+\end{equation}
+
+\noindent Written in a finite difference form, the solution for temperature is 
+
+\begin{equation}
+T_{i+1}=T_i-\frac{q_i(\rho_i,f_i)dz_i}{k_i(f_i,T_i)}.
+\end{equation}
+
+
+
+\end{document}
+
