@@ -109,6 +109,7 @@ def HeatProd():
     Mant=Density>3;
     kM=KMix(Fels,T);
     kmant=KMant(T);
+    print(np.shape(Density))
     
     k=np.zeros(np.shape(kmant));
     Poro=(Density-2.65)/(1.0-2.65);
@@ -173,16 +174,16 @@ def HeatProd():
     plt.text(4,10,'Need to Compute from Inversion',rotation=270)
 
     plt.subplot(1,4,4)
-    plt.plot(T,Depth,c='k',lw=0.5)
+    plt.plot(Density,Depth,c='k',lw=0.5)
     plt.ylim([0 ,70])
     plt.gca().invert_yaxis();
     plt.xlabel('Temp C$^{\circ}$',fontsize=10)
     plt.yticks([0,5,10,15,20,25,30,35,40,45,50,55,60,65,70],['','','','','','','','','','','','','',''])
-    plt.xlim([0,1500])
-    plt.xticks([0,500,1000,1500])
-    plt.fill_between([np.min(Temp70),np.max(Temp70)],0,70,color='r',where=None,alpha=0.5)
+    #plt.xlim([0,1500])
+    #plt.xticks([0,500,1000,1500])
+    #plt.fill_between([np.min(Temp70),np.max(Temp70)],0,70,color='r',where=None,alpha=0.5)
     plt.text(1000,3,'V$_S$ Estimate for 70km Temp',rotation=270,color='k')
 
-    plt.savefig('HeatFluxProd.png');
+    #plt.savefig('HeatFluxProd.png');
     return k;
 k=HeatProd();

@@ -110,7 +110,6 @@ z=Density[:,0]; #depth vector
 P=np.polyfit(z,T,2); # polynomial quadratic aporoximation of temperature profile (coefficents)
 TP=np.polyval(P,z); #vector of polynomial approximation
 
-
 #%% Plotting Figure 1
 if MainFig==1:
 
@@ -246,8 +245,8 @@ if SuppFig==1:
     plt.title('Bulk Density',fontsize=10); # plot title
     plt.yticks([0,5,10,15,20,25,30,35,40,45],[])#remove yticks after 1st plot
     plt.xticks([2.2,2.6,3],fontsize=9);#set xticks for readability
-    plt.xlabel('g/cc',fontsize=12); #x axis units for heat productoin
+    plt.xlabel('g/cc',fontsize=12); #x axis units for heat production
     plt.grid();#plot grid
     plt.text(2.3,43,'E',fontsize=14)
 
-    plt.savefig('SuppGeoTherm.pdf',format='pdf', dpi=1000); # save figure to PDF
+    plt.savefig('SuppGeoTherm.png',format='png'); # save figure to PDF
