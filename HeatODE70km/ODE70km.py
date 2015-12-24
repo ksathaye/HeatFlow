@@ -16,6 +16,68 @@ from scipy import spatial
 from matplotlib.path import Path
 from scipy.spatial import ConvexHull
 
+def LinearSolveAll():
+    Dir=os.getcwd();
+    DataDir=Dir + '/DataFormatted/';
+    Locations=np.genfromtxt(DataDir+'SeismicLocations.csv');
+    Locations[:,0]=Locations[:,0]-360;
+    Density=np.genfromtxt(DataDir+'DenseAll.csv');
+    Qs=np.genfromtxt(DataDir+'LongLatSurfaceHeat.csv',skip_header=1,delimiter=',');
+    Qm=np.genfromtxt(DataDir+'MantleHeat.txt',skip_header=1,delimiter=',');
+    QsInterp=Nearest2D(Qs[:,0:2],Qs[:,2]);
+    QmInterp=Nearest2D(Qm[:,0:2],Qm[:,2]);
+    
+    Avocado=6.022e23; # mols to atoms conversion
+
+    qs=QsInterp(Locations[:,0:2])/1000;
+    qm=QmInterp(Locations[:,0:2])/1000;
+    #Density[Density>3.1]=np.nan;
+    
+    Fels=(3-Density)/(0.3);
+    Fels[Density<2.7]=1;
+    Fels[Density>3]=0;
+    years=365.24*24*60*60;#years to seconds conversion
+
+    Depth=np.genfromtxt(DataDir+'Depth.csv');
+    dz=(Depth[1]-Depth[0])*1000;
+    
+    UContentU=2.8e-6/238; #upper crust uranium mass fraction
+    ThContentU=UContentU*3.8/232; #upper crust thorium mass fraction
+    K40ContentU=2*120e-6*3.4e-2/94; #upper crust thorium mass fraction
+    
+    UContentL=0.2e-6/238; #mol/g of each cell
+    ThContentL=1.2e-6/232;
+    K40ContentL=2*120e-6*0.6e-2/94;
+    
+    alpha238=7.41e-12;#Joules/decay
+    alpha235=7.24e-12;#Joules/decay
+    alpha232=6.24e-12;#Joules/decay
+    beta=1.14e-13; #Joules/decay
+    
+    LamU238 = np.log(2)/(4.468*1e9);#% decay rate of U in years
+    LamTh232 = np.log(2)/(1.405e10); # decay rate of Th in years
+    LamU235 = np.log(2)/(703800000); #decay rate of 235U in years
+    LamK40=np.log(2)/1.248e9;#decay rate of K40 in years
+    
+    UraniumHeatL=alpha238*Avocado*UContentL*LamU238/years+alpha235*Avocado*UContentL*LamU235/years/137.88;
+    ThoriumHeatL=alpha232*Avocado*ThContentL*LamTh232/years;
+    KHeatL=beta*Avocado*K40ContentL*LamK40/years;
+    TotalHeatL=UraniumHeatL+ThoriumHeatL+KHeatL; # W/gram
+    
+    UraniumHeatU=alpha238*Avocado*UContentU*LamU238/years+alpha235*Avocado*UContentU*LamU235/years/137.88;
+    ThoriumHeatU=alpha232*Avocado*ThContentU*LamTh232/years;
+    KHeatU=beta*Avocado*K40ContentU*LamK40/years;
+    
+    qc=qs-qm;
+    FluxL=np.nansum((1-Fels)*TotalHeatL*dz*Density*1e6,0);
+    TotalHeatU=(qc-FluxL)/np.nansum(Fels*Density*1e6*dz,0);
+    
+    print(TotalHeatL)
+    print(dz)
+    plt.close('all')
+    return qc*1e3 #return in W/g
+    
+
 def Temp70km(Locations):
     Dir=os.getcwd();
     DataDir=Dir + '/DataFormatted/';
@@ -161,7 +223,6 @@ def HeatProd():
     plt.yticks([0,5,10,15,20,25,30,35,40,45,50,55,60,65,70],['','','','','','','','','','','','','',''])
     plt.text(100,35,'Measured at Surface',rotation=270)
     plt.text(80,35,'Need to Estimate at Mantle',rotation=270)
-
     
     plt.subplot(1,4,3)
     plt.plot(k,Depth)
@@ -186,4 +247,6 @@ def HeatProd():
 
     #plt.savefig('HeatFluxProd.png');
     return k;
-k=HeatProd();
+
+#k=HeatProd();
+TotalHeatU=LinearSolveAll();

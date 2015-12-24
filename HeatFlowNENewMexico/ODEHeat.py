@@ -10,11 +10,27 @@ import scipy
 import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
 from scipy.interpolate import interp1d as interp1
+import pandas
 
 #%% sets which figures to plot
 MainFig=0;
 SuppFig=1;
 
+
+def ComputeCost():
+
+    df3 = pandas.DataFrame(np.random.randn(4, 5),columns=['Property', 'Water', 'Felsic', 'Mafic', 'Mantle']);
+    df3['Property'][0]='A';
+    df3['Property'][1]='B';
+    df3['Property'][2]='Density';
+    df3['Property'][3]='Heat';
+
+    df3['Water']=[0.6,np.inf,1,0];
+    df3['Felsic']=[.64,807,2.7,1.65e-6];
+    df3['Mafic']=[1.18,474,3,0.19e-6];
+    df3['Mantle']=[0.73,1293,3.3,0];
+
+    print(df3)
 
 #%% thermal conductivity of felsic upper crust
 def KFels(T):
@@ -57,9 +73,9 @@ PoroSurface=(Density[:,1]-2.65)/(-1.65); # compute porosity in sediment column f
 Ksurface=3*(1-PoroSurface)+0.6*PoroSurface; #compute conductivity in sediment column based on mixture of qtz and water
 Avocado=6.022e23; # mols to atoms conversion
 
-UFraction=1.25e-6; #upper crust uranium mass fraction
+UFraction=1.35e-6; #upper crust uranium mass fraction
 ThFraction=UFraction*3.9; #upper crust thorium mass fraction
-K2OFraction=3.4e-2; #upper crust thorium mass fraction
+K2OFraction=13913*UFraction; #upper crust K2O mass fraction
 
 dz=dz[Density[0:-1,0]<=45]; #only consider crust, remove mantle
 Density=Density[Density[:,0]<=45,:];
@@ -76,6 +92,13 @@ alpha238=7.41e-12;#Joules/decay
 alpha235=7.24e-12;#Joules/decay
 alpha232=6.24e-12;#Joules/decay
 beta=1.14e-13; #Joules/decay
+
+if 1==1:
+    MeVJ=1.60218e-13
+    alpha235=46.402*MeVJ
+    alpha238=51.698*MeVJ
+    alpha232=42.652*MeVJ
+    beta=(.893*1.311+.107*1.505)*MeVJ
 
 LamU238 = np.log(2)/(4.468*1e9);#% decay rate of U in years
 LamTh232 = np.log(2)/(1.405e10); # decay rate of Th in years
@@ -110,6 +133,8 @@ z=Density[:,0]; #depth vector
 P=np.polyfit(z,T,2); # polynomial quadratic aporoximation of temperature profile (coefficents)
 TP=np.polyval(P,z); #vector of polynomial approximation
 
+print(q[-1]*1e3)
+
 #%% Plotting Figure 1
 if MainFig==1:
 
@@ -122,7 +147,7 @@ if MainFig==1:
     plt.xticks([0,200,400,600],fontsize=8)# set up x ticks
     plt.xlim([0,650]);# set up x limits
     plt.yticks([0,5,10,15,20,25,30,35,40,45],[]);# yticks and remove labels
-    
+
 
     plt.subplot(1,2,1) #  plot density as a function of depth
     plt.plot(Density[:,1],Density[:,0],lw=2)
@@ -134,7 +159,7 @@ if MainFig==1:
     plt.xlim([2.1,3.1]);# set up x limits
     plt.xlabel('g/cc',fontsize=12);#plot units on X axis
     plt.ylabel('Depth (km)',fontsize=12)
-    
+
     plt.subplot(1,5,2) # Plot total heat production as function of depth
     plt.plot(TotalH*1e6,Density[:,0],lw=2);#plot total heat production with depth
     plt.gca().invert_yaxis(); #invert y axis for depth downward
@@ -188,7 +213,7 @@ if MainFig==1:
 if SuppFig==1:
     plt.figure();
 
-    plt.subplot(1,5,1); #plot temperature with depth
+    plt.subplot(1,5,5); #plot temperature with depth
     plt.plot(T,Density[:,0],lw=2); #plot temperature
     plt.gca().invert_yaxis();##invert y axis
     plt.title('Temperature',fontsize=10); #plot title
@@ -197,56 +222,61 @@ if SuppFig==1:
     plt.xticks([0,200,400,600],fontsize=9);# x tick marks
     plt.xlim([0,650]); # x limits
     plt.grid();#plot grid
-    plt.text(50,43,'A',fontsize=14)
+    plt.text(50,43,'E',fontsize=14)
+    plt.yticks([0,5,10,15,20,25,30,35,40,45],[]);# remove y tick labels
 
-    plt.subplot(1,5,2);#plots thermal conductivity with depth
+
+    plt.subplot(1,5,4);#plots thermal conductivity with depth
     plt.plot(k,Density[:,0],lw=2);# plot thermal conductivity
     plt.gca().invert_yaxis();#invert y axis
-    plt.title('Conductivity',fontsize=10); #plot title
+    plt.title('Conductivity',fontsize=9); #plot title
     plt.xlabel('W/(m$^{\circ}$K)');#plot units on xlabel
     plt.xticks([2,3,4],fontsize=9); # plot xticks
-    plt.yticks([0,5,10,15,20,25,30,35,40,45],[]);# remove y tick labels
+    plt.yticks([0,5,10,15,20,25,30,35,40,45],[]);# add y tick labels
     plt.grid();# plot grid
-    plt.text(2.2,43,'B',fontsize=14)
+    plt.text(2.2,43,'D',fontsize=14)
 
-    plt.subplot(1,5,3); #plots heat flux  with depth
+    plt.subplot(1,5,1); #plots heat flux  with depth
     plt.plot(q*1e3,Density[:,0],lw=2);#plots heat flux  with depth
     plt.gca().invert_yaxis();#invert y axis
-    plt.title('Heat Flux',fontsize=10); # plot title
+    plt.title('Heat Flux',fontsize=9); # plot title
     plt.xlabel('mW/m$^2$');#xlabel with units
-    plt.xticks([28,38,48,58],fontsize=9);#set xticks for readability
-    plt.xlim([27,59]); # set x limits
-    plt.text(52,43,'C',fontsize=14)
-
-    plt.yticks([0,5,10,15,20,25,30,35,40,45],[]);#remove y tick labels
+    #plt.xticks([28,38,48,58],fontsize=9);#set xticks for readability
+    plt.xticks([22,31,40,49,58],fontsize=9);#set xticks for readability
+    plt.xlim([22,60]); # set x limits
+    plt.text(52,43,'A',fontsize=14)
+    plt.yticks([0,5,10,15,20,25,30,35,40,45]);#add y tick labels
     plt.grid();#plot grid
 
-    plt.subplot(1,5,4);#plot heat production from each element
+    plt.subplot(1,5,3);#plot heat production from each element
     plt.plot((H238+H235)*1e6,Density[:,0],lw=2);#U235 and U238 heat
     plt.plot(H232*1e6,Density[:,0],lw=2,c='red',ls='-');#Thorium 232 Heat
     plt.plot(H40*1e6,Density[:,0],lw=2,c='green');# Potassium heat
     plt.gca().invert_yaxis(); #invert y axis
-    plt.title('Heat Production',fontsize=10); # plot title
+    plt.title('Heat Production',fontsize=9); # plot title
     plt.yticks([0,5,10,15,20,25,30,35,40,45],[])#remove yticks after 1st plot
     plt.xticks([0,.2,.4],fontsize=9);#set xticks for readability
     plt.grid();#plot grid
-
-    plt.text(0.32,43,'D',fontsize=14)
-    blue_line = mlines.Line2D([], [], color='blue',label='U',lw=2);#legend entry for heat from Uranium
-    red_line = mlines.Line2D([], [], color='red',label='Th',lw=2,ls='-');# legend entry for  heat from Thorium
-    green_line = mlines.Line2D([], [], color='green',label='K',lw=2);# legend entry for heat from Potassium
+    plt.text(0.32,43,'C',fontsize=14)
+    blue_line = mlines.Line2D([], [], color='blue',label='\n',lw=2);#legend entry for heat from Uranium
+    red_line = mlines.Line2D([], [], color='red',label='\n',lw=2,ls='-');# legend entry for  heat from Thorium
+    green_line = mlines.Line2D([], [], color='green',label='\n',lw=2);# legend entry for heat from Potassium
     lg=plt.legend(handles=[blue_line,red_line,green_line],loc=2,fontsize=10);# place legedn on figure
     lg.draw_frame(False) #remove legend box
+    plt.text(.11,3.5,'U',color='b',fontsize=14)
+    plt.text(.085,8.8,'Th',color='r',fontsize=14)
+    plt.text(.11,14,'K',color='g',fontsize=14)
+    plt.xlim([0,0.45])
     plt.xlabel('$\mu$W/m$^3$',fontsize=12); #x axis units for heat productoin
-    
-    plt.subplot(1,5,5);#plot heat production from each element
+
+    plt.subplot(1,5,2);#plot heat production from each element
     plt.plot(Density[:,1],Density[:,0],lw=2);#U235 and U238 heat
     plt.gca().invert_yaxis(); #invert y axis
-    plt.title('Bulk Density',fontsize=10); # plot title
+    plt.title('Bulk Density',fontsize=9); # plot title
     plt.yticks([0,5,10,15,20,25,30,35,40,45],[])#remove yticks after 1st plot
     plt.xticks([2.2,2.6,3],fontsize=9);#set xticks for readability
     plt.xlabel('g/cc',fontsize=12); #x axis units for heat production
     plt.grid();#plot grid
-    plt.text(2.3,43,'E',fontsize=14)
+    plt.text(2.3,43,'B',fontsize=14)
 
-    plt.savefig('SuppGeoTherm.png',format='png'); # save figure to PDF
+    plt.savefig('SuppGeoTherm.pdf',format='pdf'); # save figure to file
